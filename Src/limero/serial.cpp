@@ -84,75 +84,180 @@ struct PropDescriptor {
     { HbVar::TEMP,"TEMP","Calibrated Temperature °C *10", ValueType::UINT, ValueMode::READ },
 };
 
-void encode_vars(FrameEncoder frame_encoder) {
-    frame_encoder.begin_map();
-    frame_encoder.add_map(HbVar::CTRL_MOD, ctrlModReqRaw);
-    frame_encoder.add_map(HbVar::CTRL_TYP, rtP_Left.z_ctrlTypSel);
-    frame_encoder.add_map(HbVar::CUR_MOT_MAX, rtP_Left.i_max);
-    frame_encoder.add_map(HbVar::RPM_MOT_MAX, rtP_Left.n_max);
-    frame_encoder.add_map(HbVar::FI_WEAK_ENA, rtP_Left.b_fieldWeakEna);
-    frame_encoder.add_map(HbVar::FI_WEAK_HI, rtP_Left.r_fieldWeakHi);
-    frame_encoder.add_map(HbVar::FI_WEAK_LO, rtP_Left.r_fieldWeakLo);
-    frame_encoder.add_map(HbVar::FI_WEAK_MAX, rtP_Left.id_fieldWeakMax);
-    frame_encoder.add_map(HbVar::PHASE_ADV_MAX_DEG, rtP_Left.a_phaAdvMax);
-    frame_encoder.add_map(HbVar::IN1_RAW, input1[0].raw);
-    frame_encoder.add_map(HbVar::IN1_TYP, input1[0].typ);
-    frame_encoder.add_map(HbVar::IN1_MIN, input1[0].min);
-    frame_encoder.add_map(HbVar::IN1_MID, input1[0].mid);
-    frame_encoder.add_map(HbVar::IN1_MAX, input1[0].max);
-    frame_encoder.add_map(HbVar::IN1_CMD, input1[0].cmd);
-    frame_encoder.add_map(HbVar::IN2_RAW, input2[0].raw);
-    frame_encoder.add_map(HbVar::IN2_TYP, input2[0].typ);
-    frame_encoder.add_map(HbVar::IN2_MIN, input2[0].min);
-    frame_encoder.add_map(HbVar::IN2_MID, input2[0].mid);
-    frame_encoder.add_map(HbVar::IN2_MAX, input2[0].max);
-    frame_encoder.add_map(HbVar::IN2_CMD, input2[0].cmd);
-    frame_encoder.add_map(HbVar::AUX_IN1_RAW, input1[1].raw);
-    frame_encoder.add_map(HbVar::AUX_IN1_TYP, input1[1].typ);
-    frame_encoder.add_map(HbVar::AUX_IN1_MIN, input1[1].min);
-    frame_encoder.add_map(HbVar::AUX_IN1_MID, input1[1].mid);
-    frame_encoder.add_map(HbVar::AUX_IN1_MAX, input1[1].max);
-    frame_encoder.add_map(HbVar::AUX_IN1_CMD, input1[1].cmd);
-    frame_encoder.add_map(HbVar::AUX_IN2_RAW, input2[1].raw);
-    frame_encoder.add_map(HbVar::AUX_IN2_TYP, input2[1].typ);
-    frame_encoder.add_map(HbVar::AUX_IN2_MIN, input2[1].min);
-    frame_encoder.add_map(HbVar::AUX_IN2_MID, input2[1].mid);
-    frame_encoder.add_map(HbVar::AUX_IN2_MAX, input2[1].max);
-    frame_encoder.add_map(HbVar::AUX_IN2_CMD, input2[1].cmd);
-    frame_encoder.add_map(HbVar::DC_CURR, dc_curr);
-    frame_encoder.add_map(HbVar::RDC_CURR, right_dc_curr);
-    frame_encoder.add_map(HbVar::LDC_CURR, left_dc_curr);
-    frame_encoder.add_map(HbVar::CMDL, cmdL);
-    frame_encoder.add_map(HbVar::CMDR, cmdR);
-    frame_encoder.add_map(HbVar::SPD_AVG, speedAvg);
-    frame_encoder.add_map(HbVar::SPDL, rtY_Left.n_mot);
-    frame_encoder.add_map(HbVar::SPDR, rtY_Right.n_mot);
-    frame_encoder.add_map(HbVar::FILTER_RATE, 0);
-    frame_encoder.add_map(HbVar::SPD_COEF, SPEED_COEFFICIENT);
-    frame_encoder.add_map(HbVar::STR_COEF, STEER_COEFFICIENT);
-    frame_encoder.add_map(HbVar::BATV, batVoltageCalib);
-    frame_encoder.add_map(HbVar::TEMP, board_temp_deg_c);
-    frame_encoder.end_map();
+#define PROP_COUNT (sizeof(props) / sizeof(PropDescriptor))
+
+Result<Void> encode_vars(FrameEncoder& frame_encoder) {
+    RET_ERR(frame_encoder.begin_map());
+    RET_ERR(frame_encoder.add_map(HbVar::CTRL_MOD, ctrlModReqRaw));
+    RET_ERR(frame_encoder.add_map(HbVar::CTRL_TYP, rtP_Left.z_ctrlTypSel));
+    RET_ERR(frame_encoder.add_map(HbVar::CUR_MOT_MAX, rtP_Left.i_max));
+    RET_ERR(frame_encoder.add_map(HbVar::RPM_MOT_MAX, rtP_Left.n_max));
+    RET_ERR(frame_encoder.add_map(HbVar::FI_WEAK_ENA, rtP_Left.b_fieldWeakEna));
+    RET_ERR(frame_encoder.add_map(HbVar::FI_WEAK_HI, rtP_Left.r_fieldWeakHi));
+    RET_ERR(frame_encoder.add_map(HbVar::FI_WEAK_LO, rtP_Left.r_fieldWeakLo));
+    RET_ERR(frame_encoder.add_map(HbVar::FI_WEAK_MAX, rtP_Left.id_fieldWeakMax));
+    RET_ERR(frame_encoder.add_map(HbVar::PHASE_ADV_MAX_DEG, rtP_Left.a_phaAdvMax));
+    RET_ERR(frame_encoder.add_map(HbVar::IN1_RAW, input1[0].raw));
+    RET_ERR(frame_encoder.add_map(HbVar::IN1_TYP, input1[0].typ));
+    RET_ERR(frame_encoder.add_map(HbVar::IN1_MIN, input1[0].min));
+    RET_ERR(frame_encoder.add_map(HbVar::IN1_MID, input1[0].mid));
+    RET_ERR(frame_encoder.add_map(HbVar::IN1_MAX, input1[0].max));
+    RET_ERR(frame_encoder.add_map(HbVar::IN1_CMD, input1[0].cmd));
+    RET_ERR(frame_encoder.add_map(HbVar::IN2_RAW, input2[0].raw));
+    RET_ERR(frame_encoder.add_map(HbVar::IN2_TYP, input2[0].typ));
+    RET_ERR(frame_encoder.add_map(HbVar::IN2_MIN, input2[0].min));
+    RET_ERR(frame_encoder.add_map(HbVar::IN2_MID, input2[0].mid));
+    RET_ERR(frame_encoder.add_map(HbVar::IN2_MAX, input2[0].max));
+    RET_ERR(frame_encoder.add_map(HbVar::IN2_CMD, input2[0].cmd));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN1_RAW, input1[1].raw));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN1_TYP, input1[1].typ));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN1_MIN, input1[1].min));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN1_MID, input1[1].mid));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN1_MAX, input1[1].max));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN1_CMD, input1[1].cmd));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN2_RAW, input2[1].raw));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN2_TYP, input2[1].typ));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN2_MIN, input2[1].min));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN2_MID, input2[1].mid));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN2_MAX, input2[1].max));
+    RET_ERR(frame_encoder.add_map(HbVar::AUX_IN2_CMD, input2[1].cmd));
+    RET_ERR(frame_encoder.add_map(HbVar::DC_CURR, dc_curr));
+    RET_ERR(frame_encoder.add_map(HbVar::RDC_CURR, right_dc_curr));
+    RET_ERR(frame_encoder.add_map(HbVar::LDC_CURR, left_dc_curr));
+    RET_ERR(frame_encoder.add_map(HbVar::CMDL, cmdL));
+    RET_ERR(frame_encoder.add_map(HbVar::CMDR, cmdR));
+    RET_ERR(frame_encoder.add_map(HbVar::SPD_AVG, speedAvg));
+    RET_ERR(frame_encoder.add_map(HbVar::SPDL, rtY_Left.n_mot));
+    RET_ERR(frame_encoder.add_map(HbVar::SPDR, rtY_Right.n_mot));
+    RET_ERR(frame_encoder.add_map(HbVar::FILTER_RATE, 0));
+    RET_ERR(frame_encoder.add_map(HbVar::SPD_COEF, SPEED_COEFFICIENT));
+    RET_ERR(frame_encoder.add_map(HbVar::STR_COEF, STEER_COEFFICIENT));
+    RET_ERR(frame_encoder.add_map(HbVar::BATV, batVoltageCalib));
+    RET_ERR(frame_encoder.add_map(HbVar::TEMP, board_temp_deg_c));
+    RET_ERR(frame_encoder.end_map());
+    return Result<Void>::Ok(Void());
 }
 
 
 FrameEncoder frame_encoder(256);
-const uint32_t FNV_ID = FNV("hb");
+const uint32_t FNV_ID = FNV("lm1/hb");
+const char* object_name = "lm1/hb";
+const char* object_description = "Hoverboard motor driver";
+ValueType object_type = ValueType::UINT;
+ValueMode object_mode = ValueMode::READ;
+
+
+uint32_t get_info_object(uint8_t** buffer) {
+    MsgHeader header;
+    header.src = Option<uint32_t>::Some(FNV_ID);
+    header.msg_type = MsgType::Info;
+
+    frame_encoder.clear();
+    if (header.encode(frame_encoder).is_err()) {
+        return 0;
+    }
+    {
+        frame_encoder.begin_map();
+        frame_encoder.add_map(InfoPropertyId::PROP_ID, -1);
+        frame_encoder.encode_uint32(InfoPropertyId::NAME);
+        frame_encoder.encode_str(object_name);
+        frame_encoder.encode_uint32(InfoPropertyId::DESCRIPTION);
+        frame_encoder.encode_str(object_description);
+        frame_encoder.add_map(InfoPropertyId::TYPE, object_type);
+        frame_encoder.add_map(InfoPropertyId::MODE, object_mode);
+        frame_encoder.end_map();
+    }
+    if (frame_encoder.add_crc().is_err()) {
+        return 0;
+    }
+    if (frame_encoder.add_cobs().is_err()) {
+        return 0;
+    }
+
+    *buffer = frame_encoder.data();
+    return frame_encoder.size();
+}
+
+
+uint32_t get_txd_info(uint8_t** buffer, uint32_t idx) {
+    MsgHeader header;
+    header.src = Option<uint32_t>::Some(FNV_ID);
+    header.msg_type = MsgType::Info;
+
+    frame_encoder.clear();
+    if (header.encode(frame_encoder).is_err()) {
+        return 0;
+    }
+    {
+        frame_encoder.begin_map();
+        frame_encoder.add_map(InfoPropertyId::PROP_ID, props[idx].id);
+        frame_encoder.encode_uint32(InfoPropertyId::NAME);
+        frame_encoder.encode_str(props[idx].name);
+        frame_encoder.encode_uint32(InfoPropertyId::DESCRIPTION);
+        frame_encoder.encode_str(props[idx].description);
+        frame_encoder.add_map(InfoPropertyId::TYPE, props[idx].ValueType);
+        frame_encoder.add_map(InfoPropertyId::MODE, props[idx].ValueMode);
+        frame_encoder.end_map();
+    }
+    if (frame_encoder.add_crc().is_err()) {
+        return 0;
+    }
+    if (frame_encoder.add_cobs().is_err()) {
+        return 0;
+    }
+
+    *buffer = frame_encoder.data();
+    return frame_encoder.size();
+}
+
+static bool send_info = false;
+static uint32_t  property_index = 0;
+
+bool toggle() {
+    send_info = !send_info;
+    return send_info;
+}
+
+uint32_t get_prop_or_object(uint8_t** buffer) {
+    if (property_index < PROP_COUNT) {
+        return get_txd_info(buffer, property_index++);
+    }
+    else {
+        property_index = 0;
+        return get_info_object(buffer);
+    }
+}
 
 
 extern "C" uint32_t get_txd(uint8_t** buffer) {
+    if (toggle()) {
+        return get_prop_or_object(buffer);
+    }
+    MsgHeader header;
+    header.src = Option<uint32_t>::Some(FNV_ID);
+    header.msg_type = MsgType::Pub;
+
     frame_encoder.clear();
-    frame_encoder.begin_array();
-    frame_encoder.encode_null();
-    frame_encoder.encode_uint32(FNV_ID);
-    frame_encoder.encode_uint32(MsgType::Pub);
-    encode_vars(frame_encoder);
-    frame_encoder.add_crc();
-    frame_encoder.add_cobs();
-    frame_encoder.end_array();
-    uint8_t* data = frame_encoder.buffer();
-    *buffer = data;
-    return frame_encoder.length();
+    volatile uint32_t length = frame_encoder.size();
+
+    if (header.encode(frame_encoder).is_err()) {
+        return 0;
+    }
+
+    if (encode_vars(frame_encoder).is_err()) {
+        return 0;
+    }
+    length = frame_encoder.size();
+    if (frame_encoder.add_crc().is_err()) {
+        return 0;
+    }
+    if (frame_encoder.add_cobs().is_err()) {
+        return 0;
+    }
+    length = frame_encoder.size();
+    *buffer = frame_encoder.data();
+
+    return frame_encoder.size();
 }
 
 

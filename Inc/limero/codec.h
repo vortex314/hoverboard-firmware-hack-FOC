@@ -28,10 +28,25 @@ public:
         option._value = value;
         return option;
     }
+    Option() : _none(true) {}
     Option(bool none) : _none(none) {}
     bool is_some() { return !_none; }
     bool is_none() { return _none; }
     T unwrap() { return _value; }
+    void inspect(std::function<void(T)> ff) {
+        if (_none == false) {
+            ff(_value);
+        }
+    }
+    template <typename U>
+    Option<U> map(std::function<Option<U>(T)> ff) {
+        if (_none == false) {
+            return ff(_value);
+        }
+        else {
+            return Option<U>::None();
+        }
+    }
 };
 
 template <typename T>
@@ -84,21 +99,37 @@ public:
         result._msg = msg;
         return result;
     }
+    void inspect(std::function<void(T)> ff) {
+        if (_err == 0) {
+            ff(_value);
+        }
+    }
+    template <typename U>
+    Result<U> map(std::function<Result<U>(T)> ff) {
+        if (_err == 0) {
+            return ff(_value);
+        }
+        return Result<U>::Err(this->_err, this->_msg);
+    }
 };
 
-#define RET_ERR(x)    \
-    if (x.is_err()) { \
-        return x;     \
+#define RET_ERR(x)      \
+    if ((x).is_err()) { \
+        return x;       \
+    }
+#define RET_ER(x)       \
+    if ((x).is_err()) { \
+        return;         \
     }
 
 class FrameEncoder {
 private:
     std::vector<uint8_t> _buffer;
     uint32_t _max;
-    Result<Void> write_byte(uint8_t byte);
 
 public:
     FrameEncoder(uint32_t max);
+    Result<Void> write_byte(uint8_t byte);
     Result<Void> begin_array();
     Result<Void> begin_map();
     Result<Void> end_array();
@@ -109,6 +140,7 @@ public:
     Result<Void> encode_bstr(std::vector<uint8_t>& buffer);
     Result<Void> encode_float(float value);
     Result<Void> encode_int32(int32_t value);
+    Result<Void> encode_bool(bool b);
     Result<Void> encode_null();
     Result<Void> add_crc();
     Result<Void> add_cobs();
@@ -117,8 +149,8 @@ public:
     Result<Void> clear();
     Result<Void> rewind();
     Result<std::string> to_string();
-    uint32_t length() { return _buffer.size(); }
-    uint8_t* buffer() { return _buffer.data(); }
+    uint8_t* data() { return _buffer.data(); }
+    uint32_t size() { return _buffer.size(); }
 };
 
 enum CborType {
@@ -135,19 +167,23 @@ private:
     std::vector<uint8_t> _buffer;
     uint32_t _index;
     uint32_t _max;
-    Result<uint8_t> read_next();
-    Result<uint8_t> peek_next();
-    Result<CborType> peek_type();
 
 public:
     FrameDecoder(uint32_t max);
-    Result<Void> decode_array();
-    Result<Void> decode_map();
-    Result<Void> decode_end();
+    Result<uint8_t> read_next();
+    Result<uint8_t> peek_next();
+    Result<CborType> peek_type();
+    Result<Void> begin_array();
+    Result<Void> begin_map();
+    Result<Void> end_map();
+    Result<Void> end_array();
     Result<uint32_t> decode_uint32();
     Result<std::string> decode_str();
     Result<float> decode_float();
     Result<int32_t> decode_int32();
+    Result<int8_t> decode_int8();
+    Result<uint8_t> decode_uint8();
+    Result<bool> decode_bool();
     Result<std::vector<uint8_t>> decode_bstr();
     Result<bool> check_crc();
     Result<Void> decode_cobs();
@@ -161,14 +197,13 @@ public:
     Result<std::string> to_string();
 };
 
-
 // FNV-1a hash function for 32-bit hash value
 constexpr uint32_t fnv1a_32_1(const char* str, uint32_t hash = 2166136261U) {
     return *str == '\0' ? hash : fnv1a_32_1(str + 1, (hash ^ static_cast<uint32_t>(*str)) * 16777619U);
 }
 
 // Helper to compute the hash at compile time for a string literal
-template<std::size_t N>
+template <std::size_t N>
 constexpr uint32_t FNV(const char(&str)[N]) {
     return fnv1a_32_1(str);
 }
