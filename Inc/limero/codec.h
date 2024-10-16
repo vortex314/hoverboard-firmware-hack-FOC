@@ -14,34 +14,44 @@ typedef bool Void;
 template <typename T>
 class Option {
 private:
-    bool _none = false;
-    T _value;
+    bool _has_value = true;
+    T* _value_ptr;
 
 public:
     static Option<T> None() {
-        Option<T> option(true);
-        option._none = true;
+        Option<T> option = {
+             false,
+             NULL,
+        };
         return option;
     }
     static Option<T> Some(T value) {
-        Option<T> option(false);
-        option._value = value;
+        T* value_ptr = new T(value);
+        Option<T> option = Option<T>{
+             true,
+             value_ptr,
+        };
         return option;
     }
-    Option() : _none(true) {}
-    Option(bool none) : _none(none) {}
-    bool is_some() { return !_none; }
-    bool is_none() { return _none; }
-    T unwrap() { return _value; }
+    //    Option(T t) : _has_value(false), _value(t) {}
+    //    Option(bool none) : _has_value(none) {}
+    ~Option() {
+        if (_has_value) {
+            delete _value_ptr;
+        }
+    }
+    bool is_some() { return !_has_value; }
+    bool is_none() { return _has_value; }
+    T unwrap() { return *_value_ptr; }
     void inspect(std::function<void(T)> ff) {
-        if (_none == false) {
-            ff(_value);
+        if (_has_value) {
+            ff(*_value_ptr);
         }
     }
     template <typename U>
     Option<U> map(std::function<Option<U>(T)> ff) {
-        if (_none == false) {
-            return ff(_value);
+        if (_has_value) {
+            return ff(*_value_ptr);
         }
         else {
             return Option<U>::None();

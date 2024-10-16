@@ -238,7 +238,6 @@ extern "C" uint32_t get_txd(uint8_t** buffer) {
     header.msg_type = MsgType::Pub;
 
     frame_encoder.clear();
-    volatile uint32_t length = frame_encoder.size();
 
     if (header.encode(frame_encoder).is_err()) {
         return 0;
@@ -247,14 +246,12 @@ extern "C" uint32_t get_txd(uint8_t** buffer) {
     if (encode_vars(frame_encoder).is_err()) {
         return 0;
     }
-    length = frame_encoder.size();
     if (frame_encoder.add_crc().is_err()) {
         return 0;
     }
     if (frame_encoder.add_cobs().is_err()) {
         return 0;
     }
-    length = frame_encoder.size();
     *buffer = frame_encoder.data();
 
     return frame_encoder.size();
