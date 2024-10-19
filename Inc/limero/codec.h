@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <cstring>
 #include <functional>
-#include <iostream>
 #include <vector>
 
 typedef bool Void;
@@ -22,26 +21,26 @@ private:
 
 
 public:
-    Option() : _has_value(false);
+    Option() : _has_value(false) {};
     static Option None()
     {
         return Option{};
     }
-    void none() { _has_value = false ; }
+    void none() { _has_value = false; }
     void some(T value) { _has_value = true; _value = value; }
 
     static Option Some(T value)
     {
-        return Option{true, value};
+        return Option{ true, value };
     }
 
     ~Option()
     {
-       
+
     }
     bool is_some() { return !_has_value; }
     bool is_none() { return _has_value; }
-    T unwrap() { return *_value_ptr; }
+    T unwrap() { return _value; }
     void inspect(std::function<void(T)> ff)
     {
         if (_has_value)
@@ -54,7 +53,7 @@ public:
     {
         if (_has_value)
         {
-            return ff(_value;
+            return ff(_value);
         }
         return Option<U>::None();
     }
@@ -65,14 +64,14 @@ class Result
 {
     T _value;
     int _err;
-    const char *_msg;
+    const char* _msg;
 
 public:
     Result() : _value(), _err(0) {}
     bool is_ok() { return _err == 0; }
     bool is_err() { return _err != 0; }
-    const char *get_err_msg() { return (_err == 0) ? "No error" : _msg; }
-    Result &on_error(std::function<void(const char *)> ff)
+    const char* get_err_msg() { return (_err == 0) ? "No error" : _msg; }
+    Result& on_error(std::function<void(const char*)> ff)
     {
         if (_err != 0)
         {
@@ -80,7 +79,7 @@ public:
         }
         return *this;
     }
-    Result &on_ok(std::function<void(T)> ff)
+    Result& on_ok(std::function<void(T)> ff)
     {
         if (_err == 0)
         {
@@ -110,7 +109,7 @@ public:
     void ok(T value) {
         _value = value;
         _err = 0;
-        _msg = "No error"
+        _msg = "No error";
     }
     static Result<T> Err(int err)
     {
@@ -119,11 +118,11 @@ public:
         result._msg = strerror(err);
         return result;
     }
-    void err(int err, const char *msg = "unknown failure") {
-        _err =  err;
+    void err(int err, const char* msg = "unknown failure") {
+        _err = err;
         _msg = msg;
     }
-    static Result<T> Err(int err, const char *msg)
+    static Result<T> Err(int err, const char* msg)
     {
         Result<T> result;
         result._err = err;
@@ -174,20 +173,20 @@ public:
     Result<Void> end_map();
     Result<Void> add_map(int8_t key, int32_t value);
     Result<Void> encode_uint32(uint32_t input_value);
-    Result<Void> encode_str(const char *str);
-    Result<Void> encode_bstr(std::vector<uint8_t> &buffer);
+    Result<Void> encode_str(const char* str);
+    Result<Void> encode_bstr(std::vector<uint8_t>& buffer);
     Result<Void> encode_float(float value);
     Result<Void> encode_int32(int32_t value);
     Result<Void> encode_bool(bool b);
     Result<Void> encode_null();
     Result<Void> add_crc();
     Result<Void> add_cobs();
-    Result<Void> read_buffer(uint8_t *buffer, size_t len);
-    Result<Void> read_buffer(std::vector<unsigned char> &buffer);
+    Result<Void> read_buffer(uint8_t* buffer, size_t len);
+    Result<Void> read_buffer(std::vector<unsigned char>& buffer);
     Result<Void> clear();
     Result<Void> rewind();
     Result<std::string> to_string();
-    uint8_t *data() { return _buffer.data(); }
+    uint8_t* data() { return _buffer.data(); }
     uint32_t size() { return _buffer.size(); }
 };
 
@@ -229,23 +228,23 @@ public:
     Result<Void> decode_cobs();
     Result<bool> add_byte(uint8_t byte);
     Result<bool> fill_buffer(std::vector<uint8_t> buffer);
-    Result<bool> fill_buffer(uint8_t *buffer, uint32_t size);
-    Result<Void> read_buffer(uint8_t *buffer, size_t len);
-    Result<Void> read_buffer(std::vector<unsigned char> &buffer);
+    Result<bool> fill_buffer(uint8_t* buffer, uint32_t size);
+    Result<Void> read_buffer(uint8_t* buffer, size_t len);
+    Result<Void> read_buffer(std::vector<unsigned char>& buffer);
     Result<Void> clear();
     Result<Void> rewind();
     Result<std::string> to_string();
 };
 
 // FNV-1a hash function for 32-bit hash value
-constexpr uint32_t fnv1a_32_1(const char *str, uint32_t hash = 2166136261U)
+constexpr uint32_t fnv1a_32_1(const char* str, uint32_t hash = 2166136261U)
 {
     return *str == '\0' ? hash : fnv1a_32_1(str + 1, (hash ^ static_cast<uint32_t>(*str)) * 16777619U);
 }
 
 // Helper to compute the hash at compile time for a string literal
 template <std::size_t N>
-constexpr uint32_t FNV(const char (&str)[N])
+constexpr uint32_t FNV(const char(&str)[N])
 {
     return fnv1a_32_1(str);
 }

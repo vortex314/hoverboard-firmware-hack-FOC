@@ -145,6 +145,7 @@ const char* object_name = "lm1/hb";
 const char* object_description = "Hoverboard motor driver";
 ValueType object_type = ValueType::UINT;
 ValueMode object_mode = ValueMode::READ;
+Log logger(256);
 
 
 uint32_t get_info_object(uint8_t** buffer) {

@@ -15,15 +15,6 @@ extern "C" {
 #include <unistd.h>
 }
 
-
-/*
-uint64_t log_millis()   // time in msec since boot, only increasing
-{
-    struct timespec deadline;
-    clock_gettime::((int)CLOCK_MONOTONIC, &deadline);
-    return deadline.tv_sec * 1000 + deadline.tv_nsec / 1000000;
-}*/
-
 const char* Log::time() {
     return "";
     /*static char szTime[20];
@@ -65,8 +56,7 @@ void bytesToHex(std::string& ret, uint8_t* input, uint32_t length, char sep) {
 
 void Log::serialLog(char* start, uint32_t length) {
     *(start + length) = '\0';
-    fprintf(stdout, "%s\n", start);
-    fflush(stdout);
+    ::printf("%s\n", start);
 }
 
 Log::Log(uint32_t size)
@@ -103,13 +93,6 @@ void Log::defaultOutput() { _logFunction = serialLog; }
 void Log::writer(LogFunction function) { _logFunction = function; }
 
 LogFunction Log::writer() { return _logFunction; }
-
-#ifdef ESP8266
-extern "C" {
-#include <ets_sys.h>
-};
-#endif
-
 
 void Log::log(char level, const char* file, uint32_t lineNbr,
     const char* function, const char* fmt, ...) {
