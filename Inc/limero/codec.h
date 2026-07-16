@@ -38,10 +38,10 @@ public:
     {
 
     }
-    bool is_some() { return !_has_value; }
+    bool is_some() { return _has_value; }
     bool is_none() { return _has_value; }
     T unwrap() { return _value; }
-    void inspect(std::function<void(T)> ff)
+    void inspect(std::function<void(T)> ff) const
     {
         if (_has_value)
         {
@@ -56,6 +56,11 @@ public:
             return ff(_value);
         }
         return Option<U>::None();
+    }
+    void operator = (const T& other)
+    {
+        _value = other;
+        _has_value = true;
     }
 };
 
@@ -161,24 +166,14 @@ public:
 class FrameEncoder
 {
 private:
-    std::vector<uint8_t> _buffer;
-    uint32_t _max;
+    uint8_t* _buffer;
+    uint32_t _capacity;
+    uint32_t _index;
 
 public:
-    FrameEncoder(uint32_t max);
+    FrameEncoder(uint8_t buffer[], uint32_t capacity);
     Result<Void> write_byte(uint8_t byte);
-    Result<Void> begin_array();
-    Result<Void> begin_map();
-    Result<Void> end_array();
-    Result<Void> end_map();
-    Result<Void> add_map(int8_t key, int32_t value);
-    Result<Void> encode_uint32(uint32_t input_value);
-    Result<Void> encode_str(const char* str);
-    Result<Void> encode_bstr(std::vector<uint8_t>& buffer);
-    Result<Void> encode_float(float value);
-    Result<Void> encode_int32(int32_t value);
-    Result<Void> encode_bool(bool b);
-    Result<Void> encode_null();
+
     Result<Void> add_crc();
     Result<Void> add_cobs();
     Result<Void> read_buffer(uint8_t* buffer, size_t len);
@@ -186,19 +181,12 @@ public:
     Result<Void> clear();
     Result<Void> rewind();
     Result<std::string> to_string();
-    uint8_t* data() { return _buffer.data(); }
-    uint32_t size() { return _buffer.size(); }
+    uint8_t* data() { return _buffer; }
+    uint32_t size() { return _index; }
+    uint32_t capacity() { return _capacity; }
 };
 
-enum CborType
-{
-    CBOR_UINT32 = 0,
-    CBOR_STR = 1,
-    CBOR_FLOAT = 2,
-    CBOR_DOUBLE = 3,
-    CBOR_INT32 = 4,
-    CBOR_BSTR = 5,
-};
+
 
 class FrameDecoder
 {
@@ -210,20 +198,6 @@ private:
 public:
     FrameDecoder(uint32_t max);
     Result<uint8_t> read_next();
-    Result<uint8_t> peek_next();
-    Result<CborType> peek_type();
-    Result<Void> begin_array();
-    Result<Void> begin_map();
-    Result<Void> end_map();
-    Result<Void> end_array();
-    Result<uint32_t> decode_uint32();
-    Result<std::string> decode_str();
-    Result<float> decode_float();
-    Result<int32_t> decode_int32();
-    Result<int8_t> decode_int8();
-    Result<uint8_t> decode_uint8();
-    Result<bool> decode_bool();
-    Result<std::vector<uint8_t>> decode_bstr();
     Result<bool> check_crc();
     Result<Void> decode_cobs();
     Result<bool> add_byte(uint8_t byte);
@@ -248,4 +222,18 @@ constexpr uint32_t FNV(const char(&str)[N])
 {
     return fnv1a_32_1(str);
 }
+
+typedef std::vector<uint8_t> Bytes;
+
+#include <cbor.h>
+
+class Msg {
+    public:
+    static uint32_t msg_id() { return FNV("Msg"); };
+    static const char* msg_name() { return "Msg"; };
+    virtual Result<Void> encode(CborEncoder& encoder) = 0;
+    virtual Result<Void> decode(CborValue& cbor_value) = 0;
+};
+
+
 #endif
