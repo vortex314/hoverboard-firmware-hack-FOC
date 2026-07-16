@@ -140,11 +140,11 @@ static int16_t INPUT_MIN;             // [-] Input target minimum limitation
 static uint16_t timeoutCntADC = ADC_PROTECT_TIMEOUT;  // Timeout counter for ADC Protection
 #endif
 
-#if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)
+#if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) || defined(CONTROL_LIMERO)
 static uint8_t  rx_buffer_L[SERIAL_BUFFER_SIZE];      // USART Rx DMA circular buffer
 static uint32_t rx_buffer_L_len = ARRAY_LEN(rx_buffer_L);
 #endif
-#if defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)
+#if defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)  || defined(CONTROL_LIMERO)
 static uint16_t timeoutCntSerial_L = SERIAL_TIMEOUT;  // Timeout counter for Rx Serial command
 static uint8_t  timeoutFlgSerial_L = 0;               // Timeout Flag for Rx Serial command: 0 = OK, 1 = Problem detected (line disconnected or wrong Rx data)
 #endif
@@ -282,13 +282,13 @@ void Input_Init(void) {
     PWM_Init();
   #endif
 
-  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(FEEDBACK_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)
+  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(FEEDBACK_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) || defined(CONTROL_LIMERO)
     UART2_Init();
   #endif
   #if defined(DEBUG_SERIAL_USART3) || defined(CONTROL_SERIAL_USART3) || defined(FEEDBACK_SERIAL_USART3) || defined(SIDEBOARD_SERIAL_USART3)
     UART3_Init();
   #endif
-  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)
+  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) || defined(CONTROL_LIMERO)
     HAL_UART_Receive_DMA(&huart2, (uint8_t *)rx_buffer_L, sizeof(rx_buffer_L));
     UART_DisableRxErrors(&huart2);
   #endif
@@ -405,7 +405,7 @@ void Input_Init(void) {
   * @retval None
   */
 #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) || \
-    defined(DEBUG_SERIAL_USART3) || defined(CONTROL_SERIAL_USART3) || defined(SIDEBOARD_SERIAL_USART3)
+    defined(DEBUG_SERIAL_USART3) || defined(CONTROL_SERIAL_USART3) || defined(SIDEBOARD_SERIAL_USART3) || defined(CONTROL_LIMERO)
 void UART_DisableRxErrors(UART_HandleTypeDef *huart)
 {  
   CLEAR_BIT(huart->Instance->CR1, USART_CR1_PEIE);    /* Disable PE (Parity Error) interrupts */  
@@ -957,7 +957,7 @@ void handleTimeout(void) {
     }
     #endif
 
-    #if defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)
+    #if defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) || defined(CONTROL_LIMERO)
       if (timeoutCntSerial_L++ >= SERIAL_TIMEOUT) {     // Timeout qualification
         timeoutFlgSerial_L = 1;                         // Timeout detected
         timeoutCntSerial_L = SERIAL_TIMEOUT;            // Limit timout counter value
@@ -1090,7 +1090,7 @@ void readCommand(void) {
  */
 void usart2_rx_check(void)
 {
-  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)  
+  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) || defined(CONTROL_LIMERO) 
   static uint32_t old_pos;
   uint32_t pos;
   pos = rx_buffer_L_len - __HAL_DMA_GET_COUNTER(huart2.hdmarx);         // Calculate current position in buffer
@@ -1110,6 +1110,21 @@ void usart2_rx_check(void)
     }
   }
   #endif // DEBUG_SERIAL_USART2
+
+  #ifdef CONTROL_LIMERO
+  extern void handle_rxd(uint8_t* buffer,size_t size);  // handle received byte sequences 
+
+  if (pos != old_pos) {                                                 // Check change in received data
+    if (pos > old_pos ) {             // "Linear" buffer mode: check if current position is over previous one AND data length equals expected length
+      handle_rxd(&rx_buffer_L[old_pos], pos - old_pos);                  // Process data
+    } else  {                                                           // "Overflow" buffer mode: check if data length equals expected length
+      handle_rxd( &rx_buffer_L[old_pos], rx_buffer_L_len - old_pos);    // First handle data from the end of buffer
+      if (pos > 0) {                                                    // Check and continue with beginning of buffer
+        handle_rxd( rx_buffer_L, pos);                                  // handle remaining data
+      }
+    }
+  }
+  #endif // CONTROL_LIMERO
 
   #ifdef CONTROL_SERIAL_USART2
   uint8_t *ptr;	
@@ -1147,7 +1162,7 @@ void usart2_rx_check(void)
   }
   #endif // SIDEBOARD_SERIAL_USART2
 
-  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)
+  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) || defined(CONTROL_LIMERO)
   old_pos = pos;                                                        // Update old position
   if (old_pos == rx_buffer_L_len) {                                     // Check and manually update if we reached end of buffer
     old_pos = 0;

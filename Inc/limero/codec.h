@@ -171,14 +171,10 @@ private:
     uint32_t _index;
 
 public:
-    FrameEncoder(uint8_t buffer[], uint32_t capacity);
-    Result<Void> write_byte(uint8_t byte);
-
+    FrameEncoder(uint8_t buffer[], uint32_t capacity, uint32_t size = 0);
+    Result<Void> add_byte(uint8_t byte);
     Result<Void> add_crc();
     Result<Void> add_cobs();
-    Result<Void> read_buffer(uint8_t* buffer, size_t len);
-    Result<Void> read_buffer(std::vector<unsigned char>& buffer);
-    Result<Void> clear();
     Result<Void> rewind();
     Result<std::string> to_string();
     uint8_t* data() { return _buffer; }
@@ -207,6 +203,9 @@ public:
     Result<Void> read_buffer(std::vector<unsigned char>& buffer);
     Result<Void> clear();
     Result<Void> rewind();
+    uint8_t* data() { return _buffer.data(); }
+    uint32_t size() { return _index; }
+    uint32_t capacity() { return _max; }
     Result<std::string> to_string();
 };
 
