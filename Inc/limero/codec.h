@@ -7,7 +7,9 @@
 #include <cstring>
 #include <functional>
 #include <vector>
-
+#include "result.h"
+#include "option.h"
+/*
 typedef bool Void;
 
 template <typename T>
@@ -151,7 +153,7 @@ public:
         return Result<U>::Err(this->_err, this->_msg);
     }
 };
-
+*/
 #define RET_ERR(x)    \
     if ((x).is_err()) \
     {                 \
@@ -202,7 +204,7 @@ public:
     Result<Void> read_buffer(uint8_t* buffer, size_t len);
     Result<Void> read_buffer(std::vector<unsigned char>& buffer);
     Result<Void> clear();
-    Result<Void> rewind();
+    void rewind();
     uint8_t* data() { return _buffer.data(); }
     uint32_t size() { return _index; }
     uint32_t capacity() { return _max; }
@@ -226,13 +228,7 @@ typedef std::vector<uint8_t> Bytes;
 
 #include <cbor.h>
 
-class Msg {
-    public:
-    static uint32_t msg_id() { return FNV("Msg"); };
-    static const char* msg_name() { return "Msg"; };
-    virtual Result<Void> encode(CborEncoder& encoder) = 0;
-    virtual Result<Void> decode(CborValue& cbor_value) = 0;
-};
+
 
 
 #endif

@@ -4,19 +4,16 @@
 // Uses TinyCBOR for CBOR encoding/decoding.
 
 #pragma once
-
-#include <limero/codec.h>
+    
+#include "result.h"
+#include "option.h"
 #include <cbor.h>
 
-// ── TinyCBOR helper ────────────────────────────────────────────────────────
 
-static inline Result<Void> cbor_check(CborError err) {
-    if (err == CborNoError) return Result<Void>::Ok(Void());
-    return Result<Void>::Err(err, cbor_error_string(err));
-}
 
 // ── Encode macro ───────────────────────────────────────────────────────────// ── Decode macros ──────────────────────────────────────────────────────────// ── Messages ───────────────────────────────────────────────────────────────
 
+#define cbor_check(X) do { auto _err = (X); if (_err != CborNoError) return Result<Void>::Err(_err, cbor_error_string(_err)); } while(0)
 
 
 class BrokerSubscribeRequest : public Msg {
@@ -40,7 +37,7 @@ public:
         msg_type.inspect([&](const auto&) { fieldCount++; });
 
         CborEncoder mapEncoder;
-        RET_ERR(cbor_check(cbor_encoder_create_map(&encoder, &mapEncoder, fieldCount)));
+        cbor_check(cbor_encoder_create_map(&encoder, &mapEncoder, fieldCount));
         src.inspect([&](const auto& value) {
             cbor_check(cbor_encode_uint(&mapEncoder, FieldId::SRC));
             cbor_check(cbor_encode_uint(&mapEncoder, value));
@@ -50,7 +47,8 @@ public:
             cbor_check(cbor_encode_uint(&mapEncoder, value));
         });
 
-        return cbor_check(cbor_encoder_close_container(&encoder, &mapEncoder));
+        cbor_check(cbor_encoder_close_container(&encoder, &mapEncoder));
+        return Result<Void>::Ok(Void());
     }
 
     /// Deserialize a BrokerSubscribeRequest from a CBOR map value.
@@ -83,22 +81,22 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    src.some((uint32_t)val);
+                    src = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    src.some((uint32_t)val);
+                    src = ((uint32_t)val);
                 }
                     break;
                 case BrokerSubscribeRequest::FieldId::MSG_TYPE:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    msg_type.some((uint32_t)val);
+                    msg_type = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    msg_type.some((uint32_t)val);
+                    msg_type = ((uint32_t)val);
                 }
                     break;
                 default:
@@ -229,135 +227,135 @@ public:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    heading.some(val);
+                    heading = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    heading.some((float)val);
+                    heading = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    heading.some((float)val);
+                    heading = ((float)val);
                 }
                     break;
                 case CompassEvent::FieldId::PITCH:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    pitch.some(val);
+                    pitch = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    pitch.some((float)val);
+                    pitch = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    pitch.some((float)val);
+                    pitch = ((float)val);
                 }
                     break;
                 case CompassEvent::FieldId::ROLL:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    roll.some(val);
+                    roll = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    roll.some((float)val);
+                    roll = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    roll.some((float)val);
+                    roll = ((float)val);
                 }
                     break;
                 case CompassEvent::FieldId::MAG_X:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    mag_x.some(val);
+                    mag_x = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    mag_x.some((float)val);
+                    mag_x = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    mag_x.some((float)val);
+                    mag_x = ((float)val);
                 }
                     break;
                 case CompassEvent::FieldId::MAG_Y:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    mag_y.some(val);
+                    mag_y = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    mag_y.some((float)val);
+                    mag_y = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    mag_y.some((float)val);
+                    mag_y = ((float)val);
                 }
                     break;
                 case CompassEvent::FieldId::MAG_Z:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    mag_z.some(val);
+                    mag_z = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    mag_z.some((float)val);
+                    mag_z = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    mag_z.some((float)val);
+                    mag_z = ((float)val);
                 }
                     break;
                 case CompassEvent::FieldId::ACCEL_X:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    accel_x.some(val);
+                    accel_x = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_x.some((float)val);
+                    accel_x = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_x.some((float)val);
+                    accel_x = ((float)val);
                 }
                     break;
                 case CompassEvent::FieldId::ACCEL_Y:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    accel_y.some(val);
+                    accel_y = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_y.some((float)val);
+                    accel_y = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_y.some((float)val);
+                    accel_y = ((float)val);
                 }
                     break;
                 case CompassEvent::FieldId::ACCEL_Z:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    accel_z.some(val);
+                    accel_z = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_z.some((float)val);
+                    accel_z = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_z.some((float)val);
+                    accel_z = ((float)val);
                 }
                     break;
                 default:
@@ -449,7 +447,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    device.some(val);
+                    device = (val);
                 }
                     break;
                 case DeviceAliveEvent::FieldId::ENDPOINT:
@@ -459,18 +457,18 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    endpoint.some(val);
+                    endpoint = (val);
                 }
                     break;
                 case DeviceAliveEvent::FieldId::TIMESTAMP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    timestamp.some(val);
+                    timestamp = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    timestamp.some((uint64_t)val);
+                    timestamp = ((uint64_t)val);
                 }
                     break;
                 default:
@@ -615,11 +613,11 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    id.some((uint32_t)val);
+                    id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    id.some((uint32_t)val);
+                    id = ((uint32_t)val);
                 }
                     break;
                 case EndpointAnnounce::FieldId::NAME:
@@ -629,7 +627,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    name.some(val);
+                    name = (val);
                 }
                     break;
                 case EndpointAnnounce::FieldId::DESCRIPTION:
@@ -639,7 +637,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    description.some(val);
+                    description = (val);
                 }
                     break;
                 case EndpointAnnounce::FieldId::SERVICES:
@@ -660,7 +658,7 @@ public:
                         cbor_value_advance(&arrValue);
                     }
                     cbor_value_leave_container(&mapValue, &arrValue);
-                    services.some(val);
+                    services = (val);
                 }
                     break;
                 case EndpointAnnounce::FieldId::EVENTS:
@@ -681,7 +679,7 @@ public:
                         cbor_value_advance(&arrValue);
                     }
                     cbor_value_leave_container(&mapValue, &arrValue);
-                    events.some(val);
+                    events = (val);
                 }
                     break;
                 case EndpointAnnounce::FieldId::REPLIES:
@@ -702,7 +700,7 @@ public:
                         cbor_value_advance(&arrValue);
                     }
                     cbor_value_leave_container(&mapValue, &arrValue);
-                    replies.some(val);
+                    replies = (val);
                 }
                     break;
                 case EndpointAnnounce::FieldId::SUBSCRIBES:
@@ -723,7 +721,7 @@ public:
                         cbor_value_advance(&arrValue);
                     }
                     cbor_value_leave_container(&mapValue, &arrValue);
-                    subscribes.some(val);
+                    subscribes = (val);
                 }
                     break;
                 default:
@@ -798,11 +796,11 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    utc.some(val);
+                    utc = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    utc.some((uint64_t)val);
+                    utc = ((uint64_t)val);
                 }
                     break;
                 default:
@@ -912,55 +910,55 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    src.some((uint32_t)val);
+                    src = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    src.some((uint32_t)val);
+                    src = ((uint32_t)val);
                 }
                     break;
                 case Envelope::FieldId::DST:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    dst.some((uint32_t)val);
+                    dst = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    dst.some((uint32_t)val);
+                    dst = ((uint32_t)val);
                 }
                     break;
                 case Envelope::FieldId::MSG_TYPE:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    msg_type.some((uint32_t)val);
+                    msg_type = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    msg_type.some((uint32_t)val);
+                    msg_type = ((uint32_t)val);
                 }
                     break;
                 case Envelope::FieldId::REQUEST_ID:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    request_id.some((uint32_t)val);
+                    request_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    request_id.some((uint32_t)val);
+                    request_id = ((uint32_t)val);
                 }
                     break;
                 case Envelope::FieldId::INSTANCE_ID:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    instance_id.some((uint32_t)val);
+                    instance_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    instance_id.some((uint32_t)val);
+                    instance_id = ((uint32_t)val);
                 }
                     break;
                 case Envelope::FieldId::PAYLOAD:
@@ -969,7 +967,7 @@ public:
                     cbor_value_get_string_length(&mapValue, &len);
                     std::vector<uint8_t> val(len);
                     cbor_value_copy_byte_string(&mapValue, val.data(), &len, NULL);
-                    payload.some(val);
+                    payload = (val);
                 }
                     break;
                 default:
@@ -1065,22 +1063,22 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 }
                     break;
                 case GenericReply::FieldId::ERROR_CODE:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    error_code.some((uint32_t)val);
+                    error_code = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    error_code.some((uint32_t)val);
+                    error_code = ((uint32_t)val);
                 }
                     break;
                 case GenericReply::FieldId::MESSAGE:
@@ -1090,18 +1088,18 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    message.some(val);
+                    message = (val);
                 }
                     break;
                 case GenericReply::FieldId::MSG_TYPE:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    msg_type.some((uint32_t)val);
+                    msg_type = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    msg_type.some((uint32_t)val);
+                    msg_type = ((uint32_t)val);
                 }
                     break;
                 default:
@@ -1190,37 +1188,37 @@ public:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    temperature.some(val);
+                    temperature = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    temperature.some((float)val);
+                    temperature = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    temperature.some((float)val);
+                    temperature = ((float)val);
                 }
                     break;
                 case HeatingEvent::FieldId::SETPOINT:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    setpoint.some(val);
+                    setpoint = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    setpoint.some((float)val);
+                    setpoint = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    setpoint.some((float)val);
+                    setpoint = ((float)val);
                 }
                     break;
                 case HeatingEvent::FieldId::HEATING:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    heating.some(val);
+                    heating = (val);
                 }
                     break;
                 default:
@@ -1610,506 +1608,506 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    ctrl_mod.some((int32_t)val);
+                    ctrl_mod = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    ctrl_mod.some((int32_t)val);
+                    ctrl_mod = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::CTRL_TYP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    ctrl_typ.some((int32_t)val);
+                    ctrl_typ = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    ctrl_typ.some((int32_t)val);
+                    ctrl_typ = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::CUR_MOT_MAX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    cur_mot_max.some((int32_t)val);
+                    cur_mot_max = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    cur_mot_max.some((int32_t)val);
+                    cur_mot_max = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::RPM_MOT_MAX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    rpm_mot_max.some((int32_t)val);
+                    rpm_mot_max = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    rpm_mot_max.some((int32_t)val);
+                    rpm_mot_max = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::FI_WEAK_ENA:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    fi_weak_ena.some((int32_t)val);
+                    fi_weak_ena = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    fi_weak_ena.some((int32_t)val);
+                    fi_weak_ena = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::FI_WEAK_HI:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    fi_weak_hi.some((int32_t)val);
+                    fi_weak_hi = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    fi_weak_hi.some((int32_t)val);
+                    fi_weak_hi = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::FI_WEAK_LO:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    fi_weak_lo.some((int32_t)val);
+                    fi_weak_lo = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    fi_weak_lo.some((int32_t)val);
+                    fi_weak_lo = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::FI_WEAK_MAX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    fi_weak_max.some((int32_t)val);
+                    fi_weak_max = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    fi_weak_max.some((int32_t)val);
+                    fi_weak_max = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::PHASE_ADV_MAX_DEG:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    phase_adv_max_deg.some((int32_t)val);
+                    phase_adv_max_deg = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    phase_adv_max_deg.some((int32_t)val);
+                    phase_adv_max_deg = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT1_RAW:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input1_raw.some((int32_t)val);
+                    input1_raw = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input1_raw.some((int32_t)val);
+                    input1_raw = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT1_TYP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input1_typ.some((int32_t)val);
+                    input1_typ = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input1_typ.some((int32_t)val);
+                    input1_typ = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT1_MIN:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input1_min.some((int32_t)val);
+                    input1_min = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input1_min.some((int32_t)val);
+                    input1_min = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT1_MID:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input1_mid.some((int32_t)val);
+                    input1_mid = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input1_mid.some((int32_t)val);
+                    input1_mid = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT1_MAX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input1_max.some((int32_t)val);
+                    input1_max = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input1_max.some((int32_t)val);
+                    input1_max = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT1_CMD:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input1_cmd.some((int32_t)val);
+                    input1_cmd = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input1_cmd.some((int32_t)val);
+                    input1_cmd = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT2_RAW:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input2_raw.some((int32_t)val);
+                    input2_raw = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input2_raw.some((int32_t)val);
+                    input2_raw = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT2_TYP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input2_typ.some((int32_t)val);
+                    input2_typ = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input2_typ.some((int32_t)val);
+                    input2_typ = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT2_MIN:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input2_min.some((int32_t)val);
+                    input2_min = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input2_min.some((int32_t)val);
+                    input2_min = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT2_MID:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input2_mid.some((int32_t)val);
+                    input2_mid = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input2_mid.some((int32_t)val);
+                    input2_mid = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT2_MAX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input2_max.some((int32_t)val);
+                    input2_max = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input2_max.some((int32_t)val);
+                    input2_max = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::INPUT2_CMD:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    input2_cmd.some((int32_t)val);
+                    input2_cmd = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    input2_cmd.some((int32_t)val);
+                    input2_cmd = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT1_RAW:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input1_raw.some((int32_t)val);
+                    aux_input1_raw = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input1_raw.some((int32_t)val);
+                    aux_input1_raw = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT1_TYP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input1_typ.some((int32_t)val);
+                    aux_input1_typ = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input1_typ.some((int32_t)val);
+                    aux_input1_typ = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT1_MIN:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input1_min.some((int32_t)val);
+                    aux_input1_min = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input1_min.some((int32_t)val);
+                    aux_input1_min = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT1_MID:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input1_mid.some((int32_t)val);
+                    aux_input1_mid = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input1_mid.some((int32_t)val);
+                    aux_input1_mid = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT1_MAX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input1_max.some((int32_t)val);
+                    aux_input1_max = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input1_max.some((int32_t)val);
+                    aux_input1_max = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT1_CMD:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input1_cmd.some((int32_t)val);
+                    aux_input1_cmd = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input1_cmd.some((int32_t)val);
+                    aux_input1_cmd = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT2_RAW:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input2_raw.some((int32_t)val);
+                    aux_input2_raw = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input2_raw.some((int32_t)val);
+                    aux_input2_raw = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT2_TYP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input2_typ.some((int32_t)val);
+                    aux_input2_typ = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input2_typ.some((int32_t)val);
+                    aux_input2_typ = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT2_MIN:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input2_min.some((int32_t)val);
+                    aux_input2_min = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input2_min.some((int32_t)val);
+                    aux_input2_min = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT2_MID:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input2_mid.some((int32_t)val);
+                    aux_input2_mid = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input2_mid.some((int32_t)val);
+                    aux_input2_mid = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT2_MAX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input2_max.some((int32_t)val);
+                    aux_input2_max = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input2_max.some((int32_t)val);
+                    aux_input2_max = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::AUX_INPUT2_CMD:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    aux_input2_cmd.some((int32_t)val);
+                    aux_input2_cmd = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    aux_input2_cmd.some((int32_t)val);
+                    aux_input2_cmd = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::DC_CURR:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    dc_curr.some((int32_t)val);
+                    dc_curr = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    dc_curr.some((int32_t)val);
+                    dc_curr = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::RDC_CURR:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    rdc_curr.some((int32_t)val);
+                    rdc_curr = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    rdc_curr.some((int32_t)val);
+                    rdc_curr = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::LDC_CURR:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    ldc_curr.some((int32_t)val);
+                    ldc_curr = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    ldc_curr.some((int32_t)val);
+                    ldc_curr = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::CMDL:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    cmdl.some((int32_t)val);
+                    cmdl = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    cmdl.some((int32_t)val);
+                    cmdl = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::CMDR:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    cmdr.some((int32_t)val);
+                    cmdr = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    cmdr.some((int32_t)val);
+                    cmdr = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::SPD_AVG:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    spd_avg.some((int32_t)val);
+                    spd_avg = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    spd_avg.some((int32_t)val);
+                    spd_avg = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::SPDL:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    spdl.some((int32_t)val);
+                    spdl = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    spdl.some((int32_t)val);
+                    spdl = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::SPDR:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    spdr.some((int32_t)val);
+                    spdr = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    spdr.some((int32_t)val);
+                    spdr = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::FILTER_RATE:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    filter_rate.some((int32_t)val);
+                    filter_rate = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    filter_rate.some((int32_t)val);
+                    filter_rate = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::SPD_COEF:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    spd_coef.some((int32_t)val);
+                    spd_coef = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    spd_coef.some((int32_t)val);
+                    spd_coef = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::STR_COEF:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    str_coef.some((int32_t)val);
+                    str_coef = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    str_coef.some((int32_t)val);
+                    str_coef = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::BATV:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    batv.some((int32_t)val);
+                    batv = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    batv.some((int32_t)val);
+                    batv = ((int32_t)val);
                 }
                     break;
                 case HoverboardEvent::FieldId::TEMP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    temp.some((int32_t)val);
+                    temp = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    temp.some((int32_t)val);
+                    temp = ((int32_t)val);
                 }
                     break;
                 default:
@@ -2198,33 +2196,33 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 }
                     break;
                 case HoverboardRequest::FieldId::SPEED:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    speed.some((int32_t)val);
+                    speed = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    speed.some((int32_t)val);
+                    speed = ((int32_t)val);
                 }
                     break;
                 case HoverboardRequest::FieldId::STEER:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    steer.some((int32_t)val);
+                    steer = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    steer.some((int32_t)val);
+                    steer = ((int32_t)val);
                 }
                     break;
                 default:
@@ -2334,90 +2332,90 @@ public:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    gyro_x.some(val);
+                    gyro_x = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    gyro_x.some((float)val);
+                    gyro_x = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    gyro_x.some((float)val);
+                    gyro_x = ((float)val);
                 }
                     break;
                 case ImuEvent::FieldId::GYRO_Y:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    gyro_y.some(val);
+                    gyro_y = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    gyro_y.some((float)val);
+                    gyro_y = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    gyro_y.some((float)val);
+                    gyro_y = ((float)val);
                 }
                     break;
                 case ImuEvent::FieldId::GYRO_Z:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    gyro_z.some(val);
+                    gyro_z = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    gyro_z.some((float)val);
+                    gyro_z = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    gyro_z.some((float)val);
+                    gyro_z = ((float)val);
                 }
                     break;
                 case ImuEvent::FieldId::ACCEL_X:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    accel_x.some(val);
+                    accel_x = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_x.some((float)val);
+                    accel_x = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_x.some((float)val);
+                    accel_x = ((float)val);
                 }
                     break;
                 case ImuEvent::FieldId::ACCEL_Y:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    accel_y.some(val);
+                    accel_y = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_y.some((float)val);
+                    accel_y = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_y.some((float)val);
+                    accel_y = ((float)val);
                 }
                     break;
                 case ImuEvent::FieldId::ACCEL_Z:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    accel_z.some(val);
+                    accel_z = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_z.some((float)val);
+                    accel_z = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_z.some((float)val);
+                    accel_z = ((float)val);
                 }
                     break;
                 default:
@@ -2527,58 +2525,58 @@ public:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    thermocouple_temp.some(val);
+                    thermocouple_temp = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    thermocouple_temp.some((float)val);
+                    thermocouple_temp = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    thermocouple_temp.some((float)val);
+                    thermocouple_temp = ((float)val);
                 }
                     break;
                 case Max31855Event::FieldId::INTERNAL_TEMP:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    internal_temp.some(val);
+                    internal_temp = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    internal_temp.some((float)val);
+                    internal_temp = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    internal_temp.some((float)val);
+                    internal_temp = ((float)val);
                 }
                     break;
                 case Max31855Event::FieldId::FAULT:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    fault.some(val);
+                    fault = (val);
                 }
                     break;
                 case Max31855Event::FieldId::FAULT_SHORT_VCC:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    fault_short_vcc.some(val);
+                    fault_short_vcc = (val);
                 }
                     break;
                 case Max31855Event::FieldId::FAULT_SHORT_GND:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    fault_short_gnd.some(val);
+                    fault_short_gnd = (val);
                 }
                     break;
                 case Max31855Event::FieldId::FAULT_OPEN_TC:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    fault_open_tc.some(val);
+                    fault_open_tc = (val);
                 }
                     break;
                 default:
@@ -2660,22 +2658,22 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 }
                     break;
                 case PingReply::FieldId::TIMESTAMP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    timestamp.some(val);
+                    timestamp = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    timestamp.some((uint64_t)val);
+                    timestamp = ((uint64_t)val);
                 }
                     break;
                 default:
@@ -2757,22 +2755,22 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 }
                     break;
                 case PingRequest::FieldId::TIMESTAMP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    timestamp.some(val);
+                    timestamp = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    timestamp.some((uint64_t)val);
+                    timestamp = ((uint64_t)val);
                 }
                     break;
                 default:
@@ -3071,261 +3069,261 @@ public:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_left.some(val);
+                    button_left = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_RIGHT:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_right.some(val);
+                    button_right = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_UP:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_up.some(val);
+                    button_up = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_DOWN:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_down.some(val);
+                    button_down = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_SQUARE:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_square.some(val);
+                    button_square = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_CROSS:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_cross.some(val);
+                    button_cross = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_CIRCLE:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_circle.some(val);
+                    button_circle = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_TRIANGLE:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_triangle.some(val);
+                    button_triangle = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_LEFT_SHOULDER:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_left_shoulder.some(val);
+                    button_left_shoulder = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_RIGHT_SHOULDER:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_right_shoulder.some(val);
+                    button_right_shoulder = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_LEFT_TRIGGER:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_left_trigger.some(val);
+                    button_left_trigger = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_RIGHT_TRIGGER:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_right_trigger.some(val);
+                    button_right_trigger = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_LEFT_JOYSTICK:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_left_joystick.some(val);
+                    button_left_joystick = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_RIGHT_JOYSTICK:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_right_joystick.some(val);
+                    button_right_joystick = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_SHARE:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_share.some(val);
+                    button_share = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_OPTIONS:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_options.some(val);
+                    button_options = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_TOUCHPAD:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_touchpad.some(val);
+                    button_touchpad = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BUTTON_PS:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    button_ps.some(val);
+                    button_ps = (val);
                 }
                     break;
                 case Ps4Event::FieldId::AXIS_LX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    axis_lx.some((int32_t)val);
+                    axis_lx = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    axis_lx.some((int32_t)val);
+                    axis_lx = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::AXIS_LY:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    axis_ly.some((int32_t)val);
+                    axis_ly = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    axis_ly.some((int32_t)val);
+                    axis_ly = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::AXIS_RX:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    axis_rx.some((int32_t)val);
+                    axis_rx = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    axis_rx.some((int32_t)val);
+                    axis_rx = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::AXIS_RY:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    axis_ry.some((int32_t)val);
+                    axis_ry = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    axis_ry.some((int32_t)val);
+                    axis_ry = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::GYRO_X:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    gyro_x.some((int32_t)val);
+                    gyro_x = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    gyro_x.some((int32_t)val);
+                    gyro_x = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::GYRO_Y:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    gyro_y.some((int32_t)val);
+                    gyro_y = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    gyro_y.some((int32_t)val);
+                    gyro_y = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::GYRO_Z:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    gyro_z.some((int32_t)val);
+                    gyro_z = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    gyro_z.some((int32_t)val);
+                    gyro_z = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::ACCEL_X:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_x.some((int32_t)val);
+                    accel_x = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_x.some((int32_t)val);
+                    accel_x = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::ACCEL_Y:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_y.some((int32_t)val);
+                    accel_y = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_y.some((int32_t)val);
+                    accel_y = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::ACCEL_Z:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    accel_z.some((int32_t)val);
+                    accel_z = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    accel_z.some((int32_t)val);
+                    accel_z = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::CONNECTED:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    connected.some(val);
+                    connected = (val);
                 }
                     break;
                 case Ps4Event::FieldId::BATTERY_LEVEL:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    battery_level.some((int32_t)val);
+                    battery_level = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    battery_level.some((int32_t)val);
+                    battery_level = ((int32_t)val);
                 }
                     break;
                 case Ps4Event::FieldId::BLUETOOTH:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    bluetooth.some(val);
+                    bluetooth = (val);
                 }
                     break;
                 case Ps4Event::FieldId::DEBUG:
@@ -3335,18 +3333,18 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    debug.some(val);
+                    debug = (val);
                 }
                     break;
                 case Ps4Event::FieldId::TEMP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    temp.some((int32_t)val);
+                    temp = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    temp.some((int32_t)val);
+                    temp = ((int32_t)val);
                 }
                     break;
                 default:
@@ -3470,88 +3468,88 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 }
                     break;
                 case Ps4Request::FieldId::RUMBLE_SMALL:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    rumble_small.some((int32_t)val);
+                    rumble_small = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    rumble_small.some((int32_t)val);
+                    rumble_small = ((int32_t)val);
                 }
                     break;
                 case Ps4Request::FieldId::RUMBLE_LARGE:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    rumble_large.some((int32_t)val);
+                    rumble_large = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    rumble_large.some((int32_t)val);
+                    rumble_large = ((int32_t)val);
                 }
                     break;
                 case Ps4Request::FieldId::LED_RED:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    led_red.some((int32_t)val);
+                    led_red = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    led_red.some((int32_t)val);
+                    led_red = ((int32_t)val);
                 }
                     break;
                 case Ps4Request::FieldId::LED_GREEN:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    led_green.some((int32_t)val);
+                    led_green = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    led_green.some((int32_t)val);
+                    led_green = ((int32_t)val);
                 }
                     break;
                 case Ps4Request::FieldId::LED_BLUE:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    led_blue.some((int32_t)val);
+                    led_blue = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    led_blue.some((int32_t)val);
+                    led_blue = ((int32_t)val);
                 }
                     break;
                 case Ps4Request::FieldId::LED_FLASH_ON:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    led_flash_on.some((int32_t)val);
+                    led_flash_on = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    led_flash_on.some((int32_t)val);
+                    led_flash_on = ((int32_t)val);
                 }
                     break;
                 case Ps4Request::FieldId::LED_FLASH_OFF:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    led_flash_off.some((int32_t)val);
+                    led_flash_off = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    led_flash_off.some((int32_t)val);
+                    led_flash_off = ((int32_t)val);
                 }
                     break;
                 default:
@@ -3661,44 +3659,44 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    utc.some(val);
+                    utc = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    utc.some((uint64_t)val);
+                    utc = ((uint64_t)val);
                 }
                     break;
                 case SysEvent::FieldId::UPTIME:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    uptime.some(val);
+                    uptime = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    uptime.some((uint64_t)val);
+                    uptime = ((uint64_t)val);
                 }
                     break;
                 case SysEvent::FieldId::FREE_HEAP:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    free_heap.some(val);
+                    free_heap = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    free_heap.some((uint64_t)val);
+                    free_heap = ((uint64_t)val);
                 }
                     break;
                 case SysEvent::FieldId::FLASH_SIZE:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    flash_size.some(val);
+                    flash_size = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    flash_size.some((uint64_t)val);
+                    flash_size = ((uint64_t)val);
                 }
                     break;
                 case SysEvent::FieldId::CPU_BOARD_TYPE:
@@ -3708,7 +3706,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    cpu_board_type.some(val);
+                    cpu_board_type = (val);
                 }
                     break;
                 case SysEvent::FieldId::BUILD_DATE_TIME:
@@ -3718,7 +3716,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    build_date_time.some(val);
+                    build_date_time = (val);
                 }
                     break;
                 default:
@@ -3807,22 +3805,22 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 }
                     break;
                 case SysReply::FieldId::RC:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    rc.some((int32_t)val);
+                    rc = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    rc.some((int32_t)val);
+                    rc = ((int32_t)val);
                 }
                     break;
                 case SysReply::FieldId::MESSAGE:
@@ -3832,7 +3830,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    message.some(val);
+                    message = (val);
                 }
                     break;
                 default:
@@ -3928,29 +3926,29 @@ public:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    req_id.some((uint32_t)val);
+                    req_id = ((uint32_t)val);
                 }
                     break;
                 case SysRequest::FieldId::SET_TIME:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    set_time.some(val);
+                    set_time = (val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    set_time.some((uint64_t)val);
+                    set_time = ((uint64_t)val);
                 }
                     break;
                 case SysRequest::FieldId::REBOOT:
                     if (cbor_value_is_boolean(&mapValue)) {
                     bool val;
                     cbor_value_get_boolean(&mapValue, &val);
-                    reboot.some(val);
+                    reboot = (val);
                 }
                     break;
                 case SysRequest::FieldId::CONSOLE:
@@ -3960,7 +3958,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    console.some(val);
+                    console = (val);
                 }
                     break;
                 default:
@@ -4049,41 +4047,41 @@ public:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    distance.some(val);
+                    distance = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    distance.some((float)val);
+                    distance = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    distance.some((float)val);
+                    distance = ((float)val);
                 }
                     break;
                 case UsEvent::FieldId::TEMPERATURE:
                     if (cbor_value_is_float(&mapValue) || cbor_value_is_double(&mapValue)) {
                     float val;
                     cbor_value_get_float(&mapValue, &val);
-                    temperature.some(val);
+                    temperature = (val);
                 } else if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    temperature.some((float)val);
+                    temperature = ((float)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    temperature.some((float)val);
+                    temperature = ((float)val);
                 }
                     break;
                 case UsEvent::FieldId::STATUS:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    status.some((int32_t)val);
+                    status = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    status.some((int32_t)val);
+                    status = ((int32_t)val);
                 }
                     break;
                 default:
@@ -4210,7 +4208,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    ip.some(val);
+                    ip = (val);
                 }
                     break;
                 case WifiEvent::FieldId::GATEWAY:
@@ -4220,7 +4218,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    gateway.some(val);
+                    gateway = (val);
                 }
                     break;
                 case WifiEvent::FieldId::NETMASK:
@@ -4230,7 +4228,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    netmask.some(val);
+                    netmask = (val);
                 }
                     break;
                 case WifiEvent::FieldId::SSID:
@@ -4240,7 +4238,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    ssid.some(val);
+                    ssid = (val);
                 }
                     break;
                 case WifiEvent::FieldId::BSSID:
@@ -4250,29 +4248,29 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    bssid.some(val);
+                    bssid = (val);
                 }
                     break;
                 case WifiEvent::FieldId::CHANNEL:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    channel.some((int32_t)val);
+                    channel = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    channel.some((int32_t)val);
+                    channel = ((int32_t)val);
                 }
                     break;
                 case WifiEvent::FieldId::RSSI:
                     if (cbor_value_is_unsigned_integer(&mapValue)) {
                     uint64_t val;
                     cbor_value_get_uint64(&mapValue, &val);
-                    rssi.some((int32_t)val);
+                    rssi = ((int32_t)val);
                 } else if (cbor_value_is_negative_integer(&mapValue)) {
                     int64_t val;
                     cbor_value_get_int64(&mapValue, &val);
-                    rssi.some((int32_t)val);
+                    rssi = ((int32_t)val);
                 }
                     break;
                 case WifiEvent::FieldId::MAC:
@@ -4282,7 +4280,7 @@ public:
                     std::string val(len, '\0');
                     cbor_value_copy_text_string(&mapValue, &val[0], &len, NULL);
                     val.resize(len);
-                    mac.some(val);
+                    mac = (val);
                 }
                     break;
                 default:

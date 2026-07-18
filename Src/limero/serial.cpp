@@ -199,8 +199,8 @@ void handle_rxd_frame(uint8_t *buffer, size_t size)
 
     if (envelope.msg_type.is_some() && envelope.payload.is_some())
     {
-        uint32_t msg_type = envelope.msg_type.unwrap();
-        Bytes payload = envelope.payload.unwrap();
+        uint32_t msg_type = envelope.msg_type.value();
+        Bytes payload = envelope.payload.value();
         if (msg_type == HoverboardRequest::msg_id())
         {
             HoverboardRequest request;

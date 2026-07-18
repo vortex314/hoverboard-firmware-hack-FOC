@@ -101,7 +101,7 @@ Result<Void> FrameEncoder::add_byte(uint8_t byte)
 {
     if (_index + 1 > _capacity)
     {
-        return Result<Void>::Err(ENOSPC);
+        return Result<Void>::Err(ENOSPC, "Buffer overflow");
     }
     _buffer[_index++] = byte;
     return Result<Void>::Ok(Void());
@@ -120,7 +120,7 @@ Result<Void> FrameEncoder::add_cobs()
     std::vector<uint8_t> encoded = cobs_encode(std::vector<uint8_t>(_buffer, _buffer + _index));
     if (encoded.size() > _capacity)
     {
-        return Result<Void>::Err(ENOSPC);
+        return Result<Void>::Err(ENOSPC, "COBS encoded data exceeds buffer capacity");
     }
     std::memcpy(_buffer, encoded.data(), encoded.size());
     _index = encoded.size();
@@ -195,7 +195,7 @@ Result<Void> FrameDecoder::read_buffer(uint8_t *buf, size_t len)
 {
     if (len < _buffer.size())
     {
-        return Result<Void>::Err(ENOSPC);
+        return Result<Void>::Err(ENOSPC, "Provided buffer is too small");
     }
     std::memcpy(buf, _buffer.data(), _buffer.size());
     return Result<Void>::Ok(Void());
@@ -207,8 +207,7 @@ Result<Void> FrameDecoder::read_buffer(std::vector<unsigned char> &buf)
     return Result<Void>::Ok(Void());
 }
 
-Result<Void> FrameDecoder::rewind()
+void FrameDecoder::rewind()
 {
     _index = 0;
-    return Result<Void>::Ok(Void());
 }
