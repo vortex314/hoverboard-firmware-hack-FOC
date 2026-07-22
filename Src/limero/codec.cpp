@@ -134,20 +134,16 @@ Result<Void> FrameEncoder::rewind()
     return Result<Void>::Ok(Void());
 }
 
-Result<uint8_t> FrameDecoder::read_next()
+//================================================================
+
+FrameDecoder::FrameDecoder(uint32_t capacity) : _buffer(capacity)
 {
-    if (_index >= _buffer.size())
-    {
-        return Result<uint8_t>::Err(EINVAL, "At end of buffer read");
-    }
-    uint8_t value = _buffer[_index++];
-    return Result<uint8_t>::Ok(value);
 }
+
 
 Result<Void> FrameDecoder::decode_cobs()
 {
-    _buffer = cobs_decode(_buffer);
-    _index = 0;
+    _buffer = cobs_decode(_buffer.to_vector());
     if (_buffer.size() == 0)
     {
         return Result<Void>::Err(EINVAL, "COBS decode error");
@@ -157,16 +153,7 @@ Result<Void> FrameDecoder::decode_cobs()
 
 Result<bool> FrameDecoder::add_byte(uint8_t byte)
 {
-    if (byte == 0)
-    {
-        return Result<bool>::Ok(true);
-    }
-    _buffer.push_back(byte);
-    if (_buffer.size() > _max)
-    {
-        return Result<bool>::Err(ENOSPC, "Buffer overflow");
-    }
-    return Result<bool>::Ok(false);
+   return  _buffer.push_back(byte) ? Result<bool>::Err(ENOSPC, "Buffer overflow") : Result<bool>::Ok(false);
 }
 
 Result<bool> FrameDecoder::check_crc()
@@ -187,27 +174,10 @@ Result<bool> FrameDecoder::check_crc()
 Result<Void> FrameDecoder::clear()
 {
     _buffer.clear();
-    _index = 0;
-    return Result<Void>::Ok(Void());
-}
-
-Result<Void> FrameDecoder::read_buffer(uint8_t *buf, size_t len)
-{
-    if (len < _buffer.size())
-    {
-        return Result<Void>::Err(ENOSPC, "Provided buffer is too small");
-    }
-    std::memcpy(buf, _buffer.data(), _buffer.size());
-    return Result<Void>::Ok(Void());
-}
-
-Result<Void> FrameDecoder::read_buffer(std::vector<unsigned char> &buf)
-{
-    buf = _buffer;
     return Result<Void>::Ok(Void());
 }
 
 void FrameDecoder::rewind()
 {
-    _index = 0;
+    _buffer.clear();
 }

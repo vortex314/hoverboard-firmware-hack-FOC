@@ -10,9 +10,18 @@
 #include "util.h"
 #include "comms.h"
 
-#include <limero/Log.h>
+#include <limero/log.h>
 #include <limero/codec.h>
 #include <limero/msgs.h>
+#include <limero/log.h>
+
+void panic_here(const char *s)
+{
+
+    printf(" ===> PANIC : %s\n", s);
+    while (1)
+        ;
+}
 
 extern "C"
 {
@@ -39,7 +48,6 @@ extern "C"
 
 void fill_hb_event(HoverboardEvent &hb_event)
 {
-
     hb_event.ctrl_mod = ctrlModReqRaw;
     hb_event.ctrl_typ = rtP_Left.z_ctrlTypSel;
     hb_event.cur_mot_max = rtP_Left.i_max;
@@ -90,50 +98,12 @@ void fill_hb_event(HoverboardEvent &hb_event)
 
 void fill_endpoint_announce(EndpointAnnounce &ep_announce)
 {
-
     ep_announce.id = FNV("hoverboard");
     ep_announce.name = "hoverboard";
     ep_announce.description = "Hoverboard FOC Controller";
     ep_announce.services = std::vector<uint32_t>{FNV("HoverboardRequest")};
     ep_announce.events = std::vector<uint32_t>{FNV("HoverboardEvent")};
     ep_announce.replies = std::vector<uint32_t>{FNV("HoverboardReply")};
-}
-
-uint8_t envelope_buffer[512];
-
-size_t encode_envelope(Envelope &envelope, uint8_t *buffer, size_t buffer_size)
-{
-
-    CborEncoder encoder;
-    cbor_encoder_init(&encoder, buffer, buffer_size, 0);
-    if (envelope.encode(encoder).is_err())
-    {
-        return 0;
-    }
-    size_t payload_size = cbor_encoder_get_buffer_size(&encoder, buffer);
-    return payload_size;
-}
-
-size_t encode_hb_event(HoverboardEvent &hb_event, uint8_t *buffer, size_t buffer_size)
-{
-    CborEncoder encoder;
-    cbor_encoder_init(&encoder, buffer, buffer_size, 0);
-    if (hb_event.encode(encoder).is_err())
-    {
-        return 0;
-    }
-    return cbor_encoder_get_buffer_size(&encoder, buffer);
-}
-
-size_t encode_endpoint_announce(EndpointAnnounce &ep_announce, uint8_t *buffer, size_t buffer_size)
-{
-    CborEncoder encoder;
-    cbor_encoder_init(&encoder, buffer, buffer_size, 0);
-    if (ep_announce.encode(encoder).is_err())
-    {
-        return 0;
-    }
-    return cbor_encoder_get_buffer_size(&encoder, buffer);
 }
 
 Log logger(256);
@@ -144,34 +114,45 @@ bool send_announce()
     return (send_count++ % 10) == 0;
 }
 
+Envelope txd_envelope;
 HoverboardEvent hb_event;
 EndpointAnnounce ep_announce;
-uint8_t payload_buffer[512];
-Bytes buffer;
+Buffer txd_payload_buffer(200);
+Buffer txd_envelope_buffer(256);
+Buffer rxd_envelope_buffer(120);
+Buffer rxd_payload_buffer(100);
+
 extern "C" uint32_t get_txd(uint8_t **buffer)
 {
-
-    Envelope envelope;
-    envelope.src = FNV("hoverboard");
-    envelope.msg_type = HoverboardEvent::msg_id();
+    txd_payload_buffer.clear();
 
     if (send_announce())
     {
+        txd_envelope.msg_type = EndpointAnnounce::MSG_ID;
         fill_endpoint_announce(ep_announce);
-        size_t payload_size = encode_endpoint_announce(ep_announce, payload_buffer, sizeof(payload_buffer));
-        envelope.payload = Bytes(payload_buffer, payload_buffer + payload_size);
+        if (ep_announce.encode(txd_payload_buffer) != 0)
+        {
+            return 0;
+        }
     }
     else
     {
+        txd_envelope.msg_type = HoverboardEvent::MSG_ID;
         fill_hb_event(hb_event);
-        size_t payload_size = encode_hb_event(hb_event, payload_buffer, sizeof(payload_buffer));
-        envelope.payload = Bytes(payload_buffer, payload_buffer + payload_size);
+        if (hb_event.encode(txd_payload_buffer) != 0)
+        {
+            return 0;
+        }
     }
+    txd_envelope.src = FNV("hoverboard");
+    txd_envelope.payload = txd_payload_buffer.to_vector();
 
-    size_t envelope_size = encode_envelope(envelope, envelope_buffer, sizeof(envelope_buffer));
+    if (txd_envelope.encode(txd_envelope_buffer) != 0)
+    {
+        return 0;
+    }
     // re-use the envelope_buffer to encode the frame
-    FrameEncoder frame_encoder(envelope_buffer, sizeof(envelope_buffer), envelope_size);
-
+    FrameEncoder frame_encoder(txd_envelope_buffer.data(), txd_envelope_buffer.capacity(), txd_envelope_buffer.size());
     if (frame_encoder.add_crc().is_err())
     {
         return 0;
@@ -181,48 +162,45 @@ extern "C" uint32_t get_txd(uint8_t **buffer)
         return 0;
     }
     *buffer = frame_encoder.data();
-
     return frame_encoder.size();
 }
 
 void handle_rxd_frame(uint8_t *buffer, size_t size)
 {
-    CborParser parser;
-    CborValue value;
-    cbor_parser_init(buffer, size, 0, &parser, &value);
+
+    Buffer cbor_buffer(buffer, size);
 
     Envelope envelope;
-    if (envelope.decode(value).is_err())
+    if (envelope.decode(cbor_buffer) != 0)
     {
         return;
     }
 
-    if (envelope.msg_type.is_some() && envelope.payload.is_some())
+    if (envelope.msg_type && envelope.payload)
     {
-        uint32_t msg_type = envelope.msg_type.value();
-        Bytes payload = envelope.payload.value();
-        if (msg_type == HoverboardRequest::msg_id())
+        uint32_t msg_type = *envelope.msg_type;
+        Buffer payload = *envelope.payload;
+        if (msg_type == HoverboardRequest::MSG_ID)
         {
             HoverboardRequest request;
-            CborParser payload_parser;
-            CborValue payload_value;
-            cbor_parser_init(payload.data(), payload.size(), 0, &payload_parser, &payload_value);
-            if (request.decode(payload_value).is_ok())
+
+            if (request.decode(payload) == 0)
             {
                 // Handle the request
-                logger.printf("Received HoverboardRequest\n");
             }
         }
         else
         {
-            logger.printf("Received unknown message type: %u\n", msg_type);
+            //
         }
     }
 }
 
+
+
 void handle_rxd_byte(uint8_t byte)
 {
-    static FrameDecoder frame_decoder(512);
+    static FrameDecoder frame_decoder(256);
     if (byte == 0x00)
     {
         // End of frame, process the accumulated bytes

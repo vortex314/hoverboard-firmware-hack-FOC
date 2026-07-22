@@ -105,7 +105,7 @@ uint8_t  timeoutFlgADC    = 0;          // Timeout Flag for ADC Protection:    0
 uint8_t  timeoutFlgSerial = 0;          // Timeout Flag for Rx Serial command: 0 = OK, 1 = Problem detected (line disconnected or wrong Rx data)
 
 uint8_t  ctrlModReqRaw = CTRL_MOD_REQ;
-uint8_t  ctrlModReq    = CTRL_MOD_REQ;  // Final control mode request 
+volatile uint8_t  ctrlModReq    = CTRL_MOD_REQ;  // Final control mode request 
 
 #if defined(DEBUG_I2C_LCD) || defined(SUPPORT_LCD)
 LCD_PCF8574_HandleTypeDef lcd;
@@ -282,7 +282,9 @@ void Input_Init(void) {
     PWM_Init();
   #endif
 
-  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(FEEDBACK_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) || defined(CONTROL_LIMERO)
+  #if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) \
+  || defined(FEEDBACK_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) \
+  || defined(CONTROL_LIMERO)
     UART2_Init();
   #endif
   #if defined(DEBUG_SERIAL_USART3) || defined(CONTROL_SERIAL_USART3) || defined(FEEDBACK_SERIAL_USART3) || defined(SIDEBOARD_SERIAL_USART3)
@@ -297,7 +299,7 @@ void Input_Init(void) {
     UART_DisableRxErrors(&huart3);
   #endif
 
-  #if !defined(VARIANT_HOVERBOARD) && !defined(VARIANT_TRANSPOTTER)
+  #if !defined(VARIANT_HOVERBOARD) && !defined(VARIANT_TRANSPOTTER)  && !defined(CONTROL_LIMERO)
     uint16_t writeCheck, readVal;
     HAL_FLASH_Unlock();
     EE_Init();            /* EEPROM Init */

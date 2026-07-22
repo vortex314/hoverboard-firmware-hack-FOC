@@ -58,14 +58,14 @@ volatile int pwmr = 0;
 
 extern volatile adc_buf_t adc_buffer;
 
-uint8_t buzzerFreq          = 0;
-uint8_t buzzerPattern       = 0;
-uint8_t buzzerCount         = 0;
+volatile uint8_t buzzerFreq          = 0;
+volatile uint8_t buzzerPattern       = 0;
+volatile uint8_t buzzerCount         = 0;
 volatile uint32_t buzzerTimer = 0;
 static uint8_t  buzzerPrev  = 0;
 static uint8_t  buzzerIdx   = 0;
 
-uint8_t        enable       = 0;        // initially motors are disabled for SAFETY
+volatile uint8_t        enable       = 0;        // initially motors are disabled for SAFETY
 static uint8_t enableFin    = 0;
 
 static const uint16_t pwm_res  = 64000000 / 2 / PWM_FREQ; // = 2000

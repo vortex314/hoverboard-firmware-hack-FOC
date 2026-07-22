@@ -276,7 +276,10 @@ void EXTI15_10_IRQHandler(void)
 }
 #endif
 
-#if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(FEEDBACK_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)
+#if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) \
+|| defined(FEEDBACK_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) \
+|| defined(CONTROL_LIMERO) || defined(FEEDBACK_LIMERO)
+
 void DMA1_Channel6_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
@@ -333,7 +336,9 @@ void DMA1_Channel3_IRQHandler(void)
 }
 #endif
 
-#if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) || defined(FEEDBACK_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2)
+#if defined(DEBUG_SERIAL_USART2) || defined(CONTROL_SERIAL_USART2) \
+|| defined(FEEDBACK_SERIAL_USART2) || defined(SIDEBOARD_SERIAL_USART2) \
+|| defined(CONTROL_LIMERO) || defined(FEEDBACK_LIMERO)
 /**
   * @brief This function handles USART2 global interrupt.
   */
