@@ -143,11 +143,26 @@ FrameDecoder::FrameDecoder(uint32_t capacity) : _buffer(capacity)
 
 Result<Void> FrameDecoder::decode_cobs()
 {
-    _buffer = cobs_decode(_buffer.to_vector());
-    if (_buffer.size() == 0)
+    std::vector<uint8_t> decoded = cobs_decode(_buffer.to_vector());
+    if (decoded.size() == 0)
     {
         return Result<Void>::Err(EINVAL, "COBS decode error");
     }
+
+    if (decoded.size() > _buffer.capacity())
+    {
+        return Result<Void>::Err(ENOSPC, "COBS decoded data exceeds frame buffer capacity");
+    }
+
+    _buffer.clear();
+    for (uint8_t b : decoded)
+    {
+        if (_buffer.push_back(b) != 0)
+        {
+            return Result<Void>::Err(ENOSPC, "Buffer overflow while storing COBS decode result");
+        }
+    }
+
     return Result<Void>::Ok(Void());
 }
 

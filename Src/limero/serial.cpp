@@ -44,6 +44,9 @@ extern "C"
     extern int16_t dc_curr;
     extern int16_t cmdL;
     extern int16_t cmdR;
+    extern int16_t limero_speed;
+    extern int16_t limero_steer;
+    extern uint8_t limero_data_fresh;
 }
 
 void fill_hb_event(HoverboardEvent &hb_event)
@@ -165,10 +168,10 @@ extern "C" uint32_t get_txd(uint8_t **buffer)
     return frame_encoder.size();
 }
 
-void handle_rxd_frame(uint8_t *buffer, size_t size)
+void handle_rxd_frame(uint8_t *buffer, size_t size, size_t buffer_capacity)
 {
 
-    Buffer cbor_buffer(buffer, size);
+    Buffer cbor_buffer(buffer, buffer_capacity, size);
 
     Envelope envelope;
     if (envelope.decode(cbor_buffer) != 0)
@@ -187,26 +190,31 @@ void handle_rxd_frame(uint8_t *buffer, size_t size)
             if (request.decode(payload) == 0)
             {
                 // Handle the request
+                request.speed.inspect([](const int32_t &speed)
+                                      { limero_speed = speed;  
+                                    limero_data_fresh = 1; });
+                request.steer.inspect([](const int32_t &steer)
+                                      { limero_steer = steer; 
+                                    limero_data_fresh = 1; });
             }
-        }
-        else
-        {
-            //
+            else
+            {
+                //
+            }
         }
     }
 }
 
-
-
 void handle_rxd_byte(uint8_t byte)
 {
-    static FrameDecoder frame_decoder(256);
+    #define FRAME_BUFFER_SIZE 256
+    static FrameDecoder frame_decoder(FRAME_BUFFER_SIZE);
     if (byte == 0x00)
     {
         // End of frame, process the accumulated bytes
         if (frame_decoder.decode_cobs().is_ok() && frame_decoder.check_crc().is_ok())
         {
-            handle_rxd_frame(frame_decoder.data(), frame_decoder.size());
+            handle_rxd_frame(frame_decoder.data(), frame_decoder.size(), FRAME_BUFFER_SIZE);
         }
         frame_decoder.rewind();
     }

@@ -111,7 +111,7 @@ private:
     bool _own_memory = false;
 
 public:
-    Buffer(uint8_t *buffer, size_t capacity) : _buffer(buffer), _capacity(capacity), _index(0) {}
+    Buffer(uint8_t *buffer, size_t capacity, size_t index) : _buffer(buffer), _capacity(capacity), _index(index) {}
     Buffer(size_t capacity)
     {
         _buffer = (uint8_t *)malloc(capacity);
