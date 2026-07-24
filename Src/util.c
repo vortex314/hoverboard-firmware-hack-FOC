@@ -290,6 +290,7 @@ void Input_Init(void)
 #ifdef CONTROL_LIMERO
   input1[0].typ = 2; // Limero input type
   input2[0].typ = 2; // Limero input type
+  enable = 1;        // Enable motors for Limero control
 #endif
 #if defined(CONTROL_PPM_LEFT) || defined(CONTROL_PPM_RIGHT)
   PPM_Init();
